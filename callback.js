@@ -53,20 +53,10 @@ const readJSONFile = (filename, callback) => {
 }
 
 const writeJSONFile = (filename, content, callback) => {
-  let json
-  let parseError
-  
-  try {
-    json = JSON.stringify(content)
-  } catch(e) {
-    parseError = e
-  }
+  const json = JSON.stringify(content)
 
-  if (parseError) return callback(parseError)
-  else {
-    fs.writeFile(filename, json, (err) => {
-      if (err) return callback(err)
-      else return callback(filename)
-    })
-  }
+  fs.writeFile(filename, json, (err, data) => {
+    if (err) return callback(err)
+    else return callback(data)
+  })
 }
