@@ -1,7 +1,7 @@
 const fs = require('fs')
 
 const inputdir = './files/'
-const completeddir = './completed/'
+const completeddir = './completed-callback/'
 
 // read directory
 // read each file
@@ -12,16 +12,17 @@ const completeddir = './completed/'
 fs.readdir(inputdir, (err, files) => {
   if (err) console.log(`Error reading directory ${inputdir}: ${err}`)
   else {
-    for (const filename of files) {
+    // looping through the files sequentially
+    files.forEach(filename => {
       // read each file
       readJSONFile(inputdir + filename, (err, content) => {
         if (err) {
           console.log(`Error reading file ${filename}: ${err}`)
         } else {
           // add property: "processed", set as true
-          // save file to "completed" dir
           const modifiedContent = Object.assign({processed: true}, content)
-          
+
+          // save file to "completed" dir          
           writeJSONFile(completeddir + filename, modifiedContent, (err, data) => {
             if (err) console.log(`Error writing file ${filename}: ${err}`)
             else {
@@ -30,7 +31,7 @@ fs.readdir(inputdir, (err, files) => {
           })
         }
       })
-    }
+    })
   }
 })
 
