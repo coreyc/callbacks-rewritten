@@ -3,6 +3,9 @@ const fs = require('fs')
 const inputdir = './files/'
 const completeddir = './completed-callback/'
 
+// fetch books
+// save to db
+
 // read directory
 // read each file
 // add property: "processed", set as true

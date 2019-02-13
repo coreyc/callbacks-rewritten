@@ -44,7 +44,7 @@ const run = (async () => {
   }
 
   // looping through the files sequentially
-  files.forEach(async filename => {
+  for (const filename of files) {
     // read each file
     try {
       const content = await readJSONFile(inputdir + filename)
@@ -56,5 +56,5 @@ const run = (async () => {
     } catch (e) {
       throw new Error(e)
     }
-  })
+  }
 })()
