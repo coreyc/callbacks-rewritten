@@ -1,6 +1,8 @@
 const fs = require('fs')
 const promisify = require('util').promisify
 
+const request = require('superagent')
+
 const inputdir = './files/'
 const completeddir = './completed-asyncawait/'
 
@@ -10,17 +12,37 @@ const writeFile = promisify(fs.writeFile)
 
 // read directory
 // read each file
-// add property: "processed", set as true
+// get book title
+// make request to openlib with book title
+// get isbn from openlib
+// add isbn prop and number to file
 // save file to "completed" dir
 
 const readJSONFile = async (filename) => {
   try {
     const content = await readFile(filename, 'utf8')
     return JSON.parse(content)
-  } catch (e) {
+  } catch(e) {
     // could get err reading files, could get err parsing
     throw new Error(e)
   }
+}
+
+const getISBN = async (bookTitle) => {
+  let response
+
+  try {
+    const apiResponse = await request
+      .get('http://openlibrary.org/search.json')
+      .query({q: bookTitle})
+    
+    const parsed = JSON.parse(apiResponse.text)
+    response = parsed.docs[0].isbn[0]
+  } catch(e) {
+    response = e.status
+  }
+
+  return response
 }
 
 const writeJSONFile = async (filename, content) => {
@@ -28,7 +50,7 @@ const writeJSONFile = async (filename, content) => {
 
   try {
     await writeFile(filename, json)
-  } catch (e) {
+  } catch(e) {
     throw new Error(e)
   }
 }
@@ -39,22 +61,27 @@ const run = (async () => {
 
   try {
     files = await readdir(inputdir)
-  } catch (e) {
+  } catch(e) {
     console.log(console.log(`Error reading directory ${inputdir}: ${e}`))
   }
 
-  // looping through the files sequentially
-  for (const filename of files) {
-    // read each file
+  files.forEach(async filename => {
     try {
+      // read each file
       const content = await readJSONFile(inputdir + filename)
+      
+      // make request to openlib with book title
+      // get isbn from openlib
+      const isbn = await getISBN(content.bookTitle)
+      console.log('isbn:', isbn)
 
-      // add property: "processed", set as true
-      const modifiedContent = Object.assign({processed: true}, content)
+      // add isbn prop and number to file
+      const isbnAdded = Object.assign({isbn: isbn}, content)
 
-      await writeJSONFile(completeddir + filename, modifiedContent)
-    } catch (e) {
+      // save file to "completed" dir
+      await writeJSONFile(completeddir + filename, isbnAdded)
+    } catch(e) {
       throw new Error(e)
     }
-  }
+  })
 })()

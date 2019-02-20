@@ -1,36 +1,33 @@
 const fs = require('fs')
+const request = require('superagent')
 
 const inputdir = './files/'
 const completeddir = './completed-callback/'
-
-// fetch books
-// save to db
-
-// read directory
-// read each file
-// add property: "processed", set as true
-// save file to "completed" dir
 
 // read directory
 fs.readdir(inputdir, (err, files) => {
   if (err) console.log(`Error reading directory ${inputdir}: ${err}`)
   else {
-    // looping through the files sequentially
     files.forEach(filename => {
       // read each file
       readJSONFile(inputdir + filename, (err, content) => {
-        if (err) {
-          console.log(`Error reading file ${filename}: ${err}`)
-        } else {
-          // add property: "processed", set as true
-          const modifiedContent = Object.assign({processed: true}, content)
+        if (err) console.log(`Error reading file ${filename}: ${err}`)
+        else {
+          // make request to openlib with book title
+          // get isbn from openlib
+          getISBN(content.bookTitle, (err, isbn) => {
+            if (err) console.log(`Error calling openlib: ${err}`)
+            
+            // add isbn prop and number to file
+            const isbnAdded = Object.assign({isbn: isbn}, content)
 
-          // save file to "completed" dir          
-          writeJSONFile(completeddir + filename, modifiedContent, (err, data) => {
-            if (err) console.log(`Error writing file ${filename}: ${err}`)
-            else {
-              console.log(`${filename} processed and moved successfully`)
-            }
+            // save file to "completed" dir          
+            writeJSONFile(completeddir + filename, isbnAdded, (err, data) => {
+              if (err) console.log(`Error writing file ${filename}: ${err}`)
+              else {
+                console.log(`${filename} processed and moved successfully`)
+              }
+            })
           })
         }
       })
@@ -54,6 +51,21 @@ const readJSONFile = (filename, callback) => {
       return callback(parseError, parsedJson)      
     }
   })
+}
+
+const getISBN = (bookTitle, callback) => {
+  return request
+    .get('http://openlibrary.org/search.json')
+    .query({q: bookTitle})
+    .end((err, res) => {
+      if (err) return callback(err)
+      if (res.status === 200) {
+        const parsed = JSON.parse(res.text)
+        const first_isbn = parsed.docs[0].isbn[0]
+        return callback(null, first_isbn)
+      }
+    }
+  )
 }
 
 const writeJSONFile = (filename, content, callback) => {
