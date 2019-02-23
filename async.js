@@ -41,7 +41,7 @@ const insert = async (tableName, bookTitle, isbn) => {
   let res
   
   try {
-    await client.query(`INSERT INTO ${tableName} (bookTitle, isbn) VALUES ('${bookTitle}', '${isbn}');`)
+    res = await client.query(`INSERT INTO ${tableName} (bookTitle, isbn) VALUES ('${bookTitle}', '${isbn}');`)
   } catch(e) {
     res = new Error(`Error inserting: ${e}`)
   }
