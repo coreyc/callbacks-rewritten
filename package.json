@@ -1,0 +1,6 @@
+{
+  "dependencies": {
+    "pg": "latest",
+    "superagent": "latest"
+  }
+}

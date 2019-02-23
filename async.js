@@ -1,32 +1,12 @@
-const fs = require('fs')
-const promisify = require('util').promisify
-
 const request = require('superagent')
+const { Client } = require('pg')
 
-const inputdir = './files/'
-const completeddir = './completed-asyncawait/'
+const titles = ['Gullivers Travels', 'Gravitys Rainbow']
 
-const readdir = promisify(fs.readdir)
-const readFile = promisify(fs.readFile)
-const writeFile = promisify(fs.writeFile)
-
-// read directory
-// read each file
-// get book title
+// loop over titles
 // make request to openlib with book title
 // get isbn from openlib
-// add isbn prop and number to file
-// save file to "completed" dir
-
-const readJSONFile = async (filename) => {
-  try {
-    const content = await readFile(filename, 'utf8')
-    return JSON.parse(content)
-  } catch(e) {
-    // could get err reading files, could get err parsing
-    throw new Error(e)
-  }
-}
+// add isbn number and book title to table
 
 const getISBN = async (bookTitle) => {
   let response
@@ -39,47 +19,47 @@ const getISBN = async (bookTitle) => {
     const parsed = JSON.parse(apiResponse.text)
     response = parsed.docs[0].isbn[0]
   } catch(e) {
-    response = e.status
+    response = new Error(`Error calling OpenLibrary: ${e}`)
   }
 
   return response
 }
 
-const writeJSONFile = async (filename, content) => {
-  const json = JSON.stringify(content)
-
-  try {
-    await writeFile(filename, json)
-  } catch(e) {
-    throw new Error(e)
+const getConnection = () => {
+  return {
+    host: 'localhost',
+    database: 'books',
+    password: null,
+    port: 5432,
   }
 }
 
-const run = (async () => {
-  // read directory
-  let files
+const insert = async (tableName, bookTitle, isbn) => {
+  const client = new Client(getConnection())
+  await client.connect()
 
+  let res
+  
   try {
-    files = await readdir(inputdir)
+    await client.query(`INSERT INTO ${tableName} (bookTitle, isbn) VALUES ('${bookTitle}', '${isbn}');`)
   } catch(e) {
-    console.log(console.log(`Error reading directory ${inputdir}: ${e}`))
+    res = new Error(`Error inserting: ${e}`)
   }
 
-  files.forEach(async filename => {
-    try {
-      // read each file
-      const content = await readJSONFile(inputdir + filename)
-      
+  await client.end()
+  return res
+}
+
+const run = (async () => {
+  titles.forEach(async bookTitle => {
+    try {      
       // make request to openlib with book title
       // get isbn from openlib
-      const isbn = await getISBN(content.bookTitle)
-      console.log('isbn:', isbn)
+      const isbn = await getISBN(bookTitle)
 
-      // add isbn prop and number to file
-      const isbnAdded = Object.assign({isbn: isbn}, content)
-
-      // save file to "completed" dir
-      await writeJSONFile(completeddir + filename, isbnAdded)
+      // add isbn number and book title to table
+      await insert('books', bookTitle, isbn)
+      console.log(`${bookTitle}, ISBN: ${isbn} added to books table`)
     } catch(e) {
       throw new Error(e)
     }
