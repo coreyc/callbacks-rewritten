@@ -19,7 +19,7 @@ const getISBN = async (bookTitle) => {
     const parsed = JSON.parse(apiResponse.text)
     response = parsed.docs[0].isbn[0]
   } catch(e) {
-    response = new Error(`Error calling OpenLibrary: ${e}`)
+    throw new Error(`Error calling OpenLibrary: ${e}`)
   }
 
   return response
@@ -43,7 +43,7 @@ const insert = async (tableName, bookTitle, isbn) => {
   try {
     res = await client.query(`INSERT INTO ${tableName} (bookTitle, isbn) VALUES ('${bookTitle}', '${isbn}');`)
   } catch(e) {
-    res = new Error(`Error inserting: ${e}`)
+    throw new Error(`Error inserting: ${e}`)
   }
 
   await client.end()
