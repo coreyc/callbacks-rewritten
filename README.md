@@ -1,6 +1,9 @@
 # callbacks-rewritten
 
 ## Install Postgres (homebrew)
+(You'll need Homebrew installed)
+
+
 `brew install postgres`
 
 ## Start Postgres
