@@ -44,7 +44,7 @@ const insert = (tableName, bookTitle, isbn, callback) => {
 }
 
 // loop over titles
-titles.forEach(bookTitle => {
+for (const bookTitle of titles) {
   // make request to openlib with book title
   // get isbn from openlib
   getISBN(bookTitle, (err, res) => {
@@ -62,4 +62,4 @@ titles.forEach(bookTitle => {
       })
     }
   })
-})
+}

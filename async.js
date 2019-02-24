@@ -51,7 +51,7 @@ const insert = async (tableName, bookTitle, isbn) => {
 }
 
 const run = (async () => {
-  titles.forEach(async bookTitle => {
+  for (const bookTitle of titles) {
     try {      
       // make request to openlib with book title
       // get isbn from openlib
@@ -63,5 +63,5 @@ const run = (async () => {
     } catch(e) {
       throw new Error(e)
     }
-  })
+  }
 })()
